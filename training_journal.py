@@ -29,6 +29,7 @@ class TrainingLogApp:
         self.create_widgets()
 
     def create_widgets(self):
+        """Создание виджетов."""
         # Виджеты для ввода данных
         self.exercise_label = ttk.Label(self.root, text="Упражнение:")
         self.exercise_label.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
@@ -55,6 +56,7 @@ class TrainingLogApp:
         self.view_button.grid(column=0, row=4, columnspan=2, pady=10)
 
     def add_entry(self):
+        """Добавление записи."""
         date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         exercise = self.exercise_entry.get()
         weight = self.weight_entry.get()
@@ -82,6 +84,7 @@ class TrainingLogApp:
         messagebox.showinfo("Успешно", "Запись успешно добавлена!")
 
     def view_records(self):
+        """Просмотреть записи."""
         data = load_data()
         records_window = Toplevel(self.root)
         records_window.title("Записи тренировок")
@@ -98,6 +101,7 @@ class TrainingLogApp:
         tree.pack(expand=True, fill=tk.BOTH)
 
 def main():
+    """Главная функция."""
     root = tk.Tk()
     app = TrainingLogApp(root)
     root.mainloop()
