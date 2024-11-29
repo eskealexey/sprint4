@@ -2,9 +2,10 @@
 Журнал тренировок
 """
 import tkinter as tk
-from tkinter import ttk, Toplevel, messagebox
+from tkinter import ttk, Toplevel, messagebox, Button
 import json
 from datetime import datetime
+from tkinter.constants import RIGHT, BOTTOM
 
 # Файл для сохранения данных
 data_file = 'training_log.json'
@@ -88,12 +89,20 @@ class TrainingLogApp:
         data = load_data()
         records_window = Toplevel(self.root)
         records_window.title("Записи тренировок")
-
-        tree = ttk.Treeview(records_window, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
+        place = ttk.Frame(records_window, padding=10,relief=tk.RIDGE)
+        place.pack()
+        tree = ttk.Treeview(place, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
         tree.heading('Дата', text="Дата")
         tree.heading('Упражнение', text="Упражнение")
         tree.heading('Вес', text="Вес")
         tree.heading('Повторения', text="Повторения")
+        scrollbar = ttk.Scrollbar(place, orient="vertical", command=tree.yview)
+        scrollbar.pack(side=RIGHT, fill=tk.Y)
+        tree.configure(yscrollcommand=scrollbar.set)
+        btn = ttk.Button(records_window, text="Закрыть", command=records_window.destroy)
+        btn.pack(side=tk.BOTTOM, pady=10)
+
+
 
         for entry in data:
             tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
