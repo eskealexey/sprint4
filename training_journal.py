@@ -3,6 +3,7 @@
 """
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox, Button
+import re
 import json
 from datetime import datetime
 from tkinter.constants import RIGHT, BOTTOM
@@ -84,30 +85,83 @@ class TrainingLogApp:
         self.repetitions_entry.delete(0, tk.END)
         messagebox.showinfo("Успешно", "Запись успешно добавлена!")
 
-    def view_records(self):
+    def view_records(self, up=None):
         """Просмотреть записи."""
-        data = load_data()
+        if up:
+            data = up
+        else:
+            data = load_data()
         records_window = Toplevel(self.root)
         records_window.title("Записи тренировок")
-        place = ttk.Frame(records_window, padding=10,relief=tk.RIDGE)
-        place.pack()
-        tree = ttk.Treeview(place, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
+        place_ = ttk.Frame(records_window, padding=10,relief=tk.RIDGE)
+        place_.pack()
+        tree = ttk.Treeview(place_, columns=("Дата", "Упражнение", "Вес", "Повторения"), show="headings")
         tree.heading('Дата', text="Дата")
         tree.heading('Упражнение', text="Упражнение")
         tree.heading('Вес', text="Вес")
         tree.heading('Повторения', text="Повторения")
-        scrollbar = ttk.Scrollbar(place, orient="vertical", command=tree.yview)
+        scrollbar = ttk.Scrollbar(place_, orient="vertical", command=tree.yview)
         scrollbar.pack(side=RIGHT, fill=tk.Y)
         tree.configure(yscrollcommand=scrollbar.set)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)#
         btn = ttk.Button(records_window, text="Закрыть", command=records_window.destroy)
         btn.pack(side=tk.BOTTOM, pady=10)
 
+        frame1 = ttk.Frame(records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
+        frame1.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
 
+        lbl_select_date = ttk.Label(frame1, text="Введите дату ", font=("Arial", 12), justify=tk.LEFT)
+        lbl_select_date.pack(side=tk.TOP, pady=5)
+
+        lbl_disc = ttk.Label(
+            frame1,
+            text="* формат ввода: YYYY-MM-DD",
+            font=("Arial", 8),
+            justify=tk.LEFT
+        )
+        lbl_disc.pack(side=tk.TOP, pady=5)
+
+        self.date_entry = ttk.Entry(frame1)
+        self.date_entry.pack(side=tk.TOP, pady=10)
+
+        btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_records(self.date_entry.get()))
+        btn_filter.pack(side=tk.TOP, pady=10)
+
+        frame2 = ttk.Frame(records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
+        frame2.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         for entry in data:
             tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
 
         tree.pack(expand=True, fill=tk.BOTH)
+
+    def filter_records(self, string_filter: str)->None:
+        """Фильтр записей."""
+        if string_filter == "":
+            pass
+        else:
+            if self.check_format_date(string_filter):
+                self.date_entry.delete(0, tk.END)
+                data = self.filtr(date1=string_filter)
+                self.view_records(up=data)
+            else:
+                self.date_entry.delete(0, tk.END)
+                self.date_entry.insert(tk.END, "Неверный формат")
+
+    def filtr(self, date1):
+        """Фильтр записей."""
+        data = load_data()
+        filtered_data = [d for d in data if date1 in d['date']]
+        return filtered_data
+
+    def check_format_date(self, str_:str) -> bool:
+        """Проверка формата даты."""
+        et = r'[12][09][0-9][0-9]\-[0-1][0-9]\-[0-3][0-9]'
+        if re.match(et, str_) :
+            return True
+        else:
+            return False
+
 
 def main():
     """Главная функция."""
