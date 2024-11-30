@@ -124,35 +124,36 @@ class TrainingLogApp:
         self.date_entry = ttk.Entry(frame1)
         self.date_entry.pack(side=tk.TOP, pady=10)
 
-        btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_records(self.date_entry.get()))
+        btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_dates(self.date_entry.get()))
         btn_filter.pack(side=tk.TOP, pady=10)
 
         frame2 = ttk.Frame(records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
-        frame2.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        frame2.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
+        lbl_select_exercise = ttk.Label(frame2, text="Введите упражнение ", font=("Arial", 12), justify=tk.LEFT)
+        lbl_select_exercise.pack(side=tk.TOP, pady=5)
+        self.exercise_entry = ttk.Entry(frame2)
+        self.exercise_entry.pack(side=tk.TOP, pady=10)
+
+        btn_filter = ttk.Button(frame2, text="Фильтр", command=lambda: self.filter_exercise(self.exercise_entry.get()))
+        btn_filter.pack(side=tk.TOP, pady=10)
 
         for entry in data:
             tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
 
         tree.pack(expand=True, fill=tk.BOTH)
 
-    def filter_records(self, string_filter: str)->None:
-        """Фильтр записей."""
+    def filter_dates(self, string_filter: str)->None:
+        """Фильтр записей по дате."""
         if string_filter == "":
             pass
         else:
             if self.check_format_date(string_filter):
                 self.date_entry.delete(0, tk.END)
-                data = self.filtr(date1=string_filter)
+                data = self.filtr(volue=string_filter,col="date")
                 self.view_records(up=data)
             else:
                 self.date_entry.delete(0, tk.END)
                 self.date_entry.insert(tk.END, "Неверный формат")
-
-    def filtr(self, date1):
-        """Фильтр записей."""
-        data = load_data()
-        filtered_data = [d for d in data if date1 in d['date']]
-        return filtered_data
 
     def check_format_date(self, str_:str) -> bool:
         """Проверка формата даты."""
@@ -161,6 +162,21 @@ class TrainingLogApp:
             return True
         else:
             return False
+
+    def filter_exercise(self, string_filter: str)->None:
+        """Фильтр записей по упражнению."""
+        if string_filter == "":
+            pass
+        else:
+            self.exercise_entry.delete(0, tk.END)
+            data = self.filtr(volue=string_filter, col="exercise")
+            self.view_records(up=data)
+
+    def filtr(self, volue:str, col:str)->list:
+        """Фильтр записей."""
+        data = load_data()
+        filtered_data = [d for d in data if volue in d[f'{col}']]
+        return filtered_data
 
 
 def main():
