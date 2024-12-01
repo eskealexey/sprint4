@@ -142,7 +142,7 @@ class TrainingLogApp:
         frame3.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
         btn_export = ttk.Button(frame3, text="Экспорт в CSV", command=lambda: self.export_records())
         btn_export.pack(side=tk.TOP, pady=10)
-        btn_import = ttk.Button(frame3, text="Импрт в CSV", command=lambda: self.import_records())
+        btn_import = ttk.Button(frame3, text="Импрт из CSV", command=lambda: self.import_records())
         btn_import.pack(side=tk.TOP, pady=10)
 
         for entry in data:
@@ -198,7 +198,20 @@ class TrainingLogApp:
 
     def import_records(self)->None:
         """Импорт записей из CSV."""
-        pass
+        try:
+            with open("training_log.csv", "r") as f:
+                reader = csv.reader(f)
+                data = list(reader)
+                list_ = []
+                keys = ["date", "exercise", "weight", "repetitions"]
+                len_ = len(data)
+                for item in data[1:len_]:
+                    list_.append(dict(zip(keys, item)))
+                save_data(list_)
+                messagebox.showinfo("Успешно", "Записи успешно импортированы!")
+        except FileNotFoundError:
+            messagebox.showerror("Ошибка", "Файл не найден!")
+
 
 
 
