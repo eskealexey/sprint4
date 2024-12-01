@@ -1,6 +1,7 @@
 """
 Журнал тренировок
 """
+import csv
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox, Button
 import re
@@ -137,6 +138,13 @@ class TrainingLogApp:
         btn_filter = ttk.Button(frame2, text="Фильтр", command=lambda: self.filter_exercise(self.exercise_entry.get()))
         btn_filter.pack(side=tk.TOP, pady=10)
 
+        frame3 = ttk.Frame(records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
+        frame3.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
+        btn_export = ttk.Button(frame3, text="Экспорт в CSV", command=lambda: self.export_records())
+        btn_export.pack(side=tk.TOP, pady=10)
+        btn_import = ttk.Button(frame3, text="Импрт в CSV", command=lambda: self.import_records())
+        btn_import.pack(side=tk.TOP, pady=10)
+
         for entry in data:
             tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
 
@@ -177,6 +185,21 @@ class TrainingLogApp:
         data = load_data()
         filtered_data = [d for d in data if volue in d[f'{col}']]
         return filtered_data
+
+    def export_records(self)->None:
+        """Экспорт записей в CSV."""
+        data = load_data()
+        with open("training_log.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(("Дата", "Упражнение", "Вес", "Повторения"))
+            for entry in data:
+                writer.writerow((entry["date"], entry["exercise"], entry["weight"], entry["repetitions"]))
+            messagebox.showinfo("Успешно", "Записи успешно экспортированы!")
+
+    def import_records(self)->None:
+        """Импорт записей из CSV."""
+        pass
+
 
 
 def main():
