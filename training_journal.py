@@ -156,11 +156,23 @@ class TrainingLogApp:
         btn_delete = ttk.Button(frame4, text="Удалить запись", command=lambda: self.delete_records(self.tree.index(self.tree.selection())))
         btn_delete.pack(side=tk.TOP, pady=10)
 
+        frame5 = ttk.Frame(self.records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 1])
+        frame5.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
+        lbl_statistics1 = ttk.Label(frame5, text="Статистика", font=("Arial", 12), justify=tk.LEFT)
+        lbl_statistics1.pack(side=tk.TOP, pady=5)
+        lbl_statistics2 = ttk.Label(frame5, text="Суммарный вес:", font=("Arial", 10), justify=tk.LEFT)
+        lbl_statistics2.pack(side=tk.TOP, pady=5)
 
         for entry in data:
             self.tree.insert('', tk.END, values=(entry['date'], entry['exercise'], entry['weight'], entry['repetitions']))
 
+        sum_weight = self.total_weight(data)
+        lbl_statistics3 = ttk.Label(frame5, text=sum_weight, font=("Arial", 10), justify=tk.LEFT)
+        lbl_statistics3.pack(side=tk.TOP, pady=5)
         self.tree.pack(expand=True, fill=tk.BOTH)
+
+
+
 
     def filter_dates(self, string_filter: str)->None:
         """Фильтр записей по дате."""
@@ -170,6 +182,7 @@ class TrainingLogApp:
             if self.check_format_date(string_filter):
                 self.date_entry.delete(0, tk.END)
                 data = self.filtr(volue=string_filter,col="date")
+                self.records_window.destroy()
                 self.view_records(up=data)
             else:
                 self.date_entry.delete(0, tk.END)
@@ -190,6 +203,7 @@ class TrainingLogApp:
         else:
             self.exercise_entry.delete(0, tk.END)
             data = self.filtr(volue=string_filter, col="exercise")
+            self.records_window.destroy()
             self.view_records(up=data)
 
     def filtr(self, volue:str, col:str)->list:
@@ -197,6 +211,12 @@ class TrainingLogApp:
         data = load_data()
         filtered_data = [d for d in data if volue in d[f'{col}']]
         return filtered_data
+
+    def total_weight(self, data:list)->float:
+        total = 0
+        for entry in data:
+            total += float(entry["weight"])
+        return total
 
     def export_records(self)->None:
         """Экспорт записей в CSV."""
