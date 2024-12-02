@@ -2,13 +2,13 @@
 Журнал тренировок
 """
 import csv
+import json
+import re
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox, simpledialog
-import re
-import json
-from datetime import datetime
 from tkinter.constants import RIGHT
 
+from tkcalendar import DateEntry
 
 # Файл для сохранения данных
 data_file = 'training_log.json'
@@ -26,6 +26,25 @@ def save_data(data):
     with open(data_file, 'w') as file:
         json.dump(data, file, indent=4)
 
+class DataTimePicker(tk.Frame):
+    def __init__(self, parent, *args, **kwrgs):
+        super().__init__(parent, *args, **kwrgs)
+
+        self.date_entry = DateEntry(self, width=10, background='darkblue', foreground='white', borderwidth=2,)
+        self.date_entry.pack(side=tk.LEFT, padx=(0,5))
+
+        self.hour_spin = ttk.Spinbox(self, from_=0, to=23, width=3, increment=1, format='%02.0f')
+        self.hour_spin.pack(side=tk.LEFT)
+
+        self.minute_spin = ttk.Spinbox(self, from_=0, to=59, width=3, format='%02.0f')
+        self.minute_spin.pack(side=tk.LEFT)
+
+    def get(self):
+        date_str = self.date_entry.get()
+        time_str = f"{self.hour_spin.get()} : {self.minute_spin.get()}"
+        return f"{date_str} {time_str}"
+
+
 class TrainingLogApp:
     """
     Класс для ведения дневника тренировок.
@@ -38,33 +57,37 @@ class TrainingLogApp:
     def create_widgets(self):
         """Создание виджетов."""
         # Виджеты для ввода данных
+        self.datetime_picker = DataTimePicker(self.root)
+        self.datetime_picker.grid(column=0, row=0, columnspan=2, sticky=tk.EW)
+
         self.exercise_label = ttk.Label(self.root, text="Упражнение:")
-        self.exercise_label.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
+        self.exercise_label.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 
         self.exercise_entry = ttk.Entry(self.root)
-        self.exercise_entry.grid(column=1, row=0, sticky=tk.EW, padx=5, pady=5)
+        self.exercise_entry.grid(column=1, row=1, sticky=tk.EW, padx=5, pady=5)
 
         self.weight_label = ttk.Label(self.root, text="Вес:")
-        self.weight_label.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+        self.weight_label.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 
         self.weight_entry = ttk.Entry(self.root)
-        self.weight_entry.grid(column=1, row=1, sticky=tk.EW, padx=5, pady=5)
+        self.weight_entry.grid(column=1, row=2, sticky=tk.EW, padx=5, pady=5)
 
         self.repetitions_label = ttk.Label(self.root, text="Повторения:")
-        self.repetitions_label.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
+        self.repetitions_label.grid(column=0, row=3, sticky=tk.W, padx=5, pady=5)
 
         self.repetitions_entry = ttk.Entry(self.root)
-        self.repetitions_entry.grid(column=1, row=2, sticky=tk.EW, padx=5, pady=5)
+        self.repetitions_entry.grid(column=1, row=3, sticky=tk.EW, padx=5, pady=5)
 
         self.add_button = ttk.Button(self.root, text="Добавить запись", command=self.add_entry)
-        self.add_button.grid(column=0, row=3, columnspan=2, pady=10)
+        self.add_button.grid(column=0, row=4, columnspan=2, pady=10)
 
         self.view_button = ttk.Button(self.root, text="Просмотреть записи", command=self.view_records)
-        self.view_button.grid(column=0, row=4, columnspan=2, pady=10)
+        self.view_button.grid(column=0, row=5, columnspan=2, pady=10)
 
     def add_entry(self):
         """Добавление записи."""
-        date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        date = self.datetime_picker.get()
         exercise = self.exercise_entry.get()
         weight = self.weight_entry.get()
         repetitions = self.repetitions_entry.get()
@@ -248,6 +271,8 @@ class TrainingLogApp:
 
     def edit_records(self, selected_item)->None:
         """Редактирование записей."""
+        if not selected_item:
+            return
         item_values = self.tree.item(selected_item, "values")
 
         new_date = simpledialog.askstring("Редактирование даты", "Введите дату:", initialvalue=item_values[0])
@@ -266,9 +291,8 @@ class TrainingLogApp:
             data.append(item_data['values'])  # Сохраняем значения
         list_ = []
         keys = ["date", "exercise", "weight", "repetitions"]
-        len_ = len(data)
+        # len_ = len(data)
         for item in data:
-            print(item)
             list_.append(dict(zip(keys, item)))
         save_data(list_)
         self.records_window.destroy()
@@ -276,6 +300,8 @@ class TrainingLogApp:
 
     def delete_records(self, selected_item:int)->None:
         """Удаление записей"""
+        if not selected_item:
+            return
         data = load_data()
         del data[selected_item]
         save_data(data)
