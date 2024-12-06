@@ -3,7 +3,8 @@
 """
 import csv
 import json
-import re
+# import re
+import datetime
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox, simpledialog
 from tkinter.constants import RIGHT
@@ -41,7 +42,7 @@ class DataTimePicker(tk.Frame):
 
     def get(self):
         date_str = self.date_entry.get()
-        time_str = f"{self.hour_spin.get()} : {self.minute_spin.get()}"
+        time_str = f"{self.hour_spin.get()}:{self.minute_spin.get()}"
         return f"{date_str} {time_str}"
 
 
@@ -86,7 +87,6 @@ class TrainingLogApp:
 
     def add_entry(self):
         """Добавление записи."""
-        # date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         date = self.datetime_picker.get()
         exercise = self.exercise_entry.get()
         weight = self.weight_entry.get()
@@ -138,21 +138,33 @@ class TrainingLogApp:
         frame1 = ttk.Frame(self.records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
         frame1.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.NW)
 
-        lbl_select_date = ttk.Label(frame1, text="Введите дату ", font=("Arial", 12), justify=tk.LEFT)
+        lbl_select_date = ttk.Label(frame1, text="Введите интервал даты", font=("Arial", 12), justify=tk.LEFT)
         lbl_select_date.pack(side=tk.TOP, pady=5)
 
         lbl_disc = ttk.Label(
             frame1,
-            text="* формат ввода: YYYY-MM-DD",
+            text="С:",
             font=("Arial", 8),
             justify=tk.LEFT
         )
         lbl_disc.pack(side=tk.TOP, pady=5)
+        datetime_picker1 = DataTimePicker(frame1)
+        datetime_picker1.pack(side=tk.TOP, pady=10)
+        lbl_disc2 = ttk.Label(
+            frame1,
+            text="ПО:",
+            font=("Arial", 8),
+            justify=tk.LEFT
+        )
+        lbl_disc2.pack(side=tk.TOP, pady=5)
+        datetime_picker2 = DataTimePicker(frame1)
+        datetime_picker2.pack(side=tk.TOP, pady=10)
 
-        self.date_entry = ttk.Entry(frame1)
-        self.date_entry.pack(side=tk.TOP, pady=10)
+        # self.date_entry = ttk.Entry(frame1)
+        # self.date_entry.pack(side=tk.TOP, pady=10)
 
-        btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_dates(self.date_entry.get()))
+        btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_dates(datetime_picker1.get(),
+                                                                                         datetime_picker2.get()))
         btn_filter.pack(side=tk.TOP, pady=10)
 
         frame2 = ttk.Frame(self.records_window, borderwidth=1, relief=tk.SOLID, padding=[8, 10])
@@ -194,30 +206,19 @@ class TrainingLogApp:
         lbl_statistics3.pack(side=tk.TOP, pady=5)
         self.tree.pack(expand=True, fill=tk.BOTH)
 
+    def date_to_unix(self, date: str)->int:
+        d = date[:10]
+        date = datetime.datetime.strptime(d, "%d.%m.%Y")
+        unix = date.timestamp()
+        return unix
 
-
-
-    def filter_dates(self, string_filter: str)->None:
-        """Фильтр записей по дате."""
-        if string_filter == "":
-            pass
-        else:
-            if self.check_format_date(string_filter):
-                self.date_entry.delete(0, tk.END)
-                data = self.filtr(volue=string_filter,col="date")
-                self.records_window.destroy()
-                self.view_records(up=data)
-            else:
-                self.date_entry.delete(0, tk.END)
-                self.date_entry.insert(tk.END, "Неверный формат")
-
-    def check_format_date(self, str_:str) -> bool:
-        """Проверка формата даты."""
-        et = r'[12][09][0-9][0-9]\-[0-1][0-9]\-[0-3][0-9]'
-        if re.match(et, str_) :
-            return True
-        else:
-            return False
+    def filter_dates(self, date1_filter: str, date2_filter: str)->None:
+        date1 = self.date_to_unix(date1_filter)
+        date2 = self.date_to_unix(date2_filter)
+        data = load_data()
+        filtered_data = [d for d in data if date1 <= self.date_to_unix(d['date']) <= date2]
+        self.records_window.destroy()
+        self.view_records(up=filtered_data)
 
     def filter_exercise(self, string_filter: str)->None:
         """Фильтр записей по упражнению."""
