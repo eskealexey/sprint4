@@ -3,11 +3,12 @@
 """
 import csv
 import json
-# import re
 import datetime
+
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox, simpledialog
 from tkinter.constants import RIGHT
+import matplotlib.pyplot as plt
 
 from tkcalendar import DateEntry
 
@@ -160,9 +161,6 @@ class TrainingLogApp:
         datetime_picker2 = DataTimePicker(frame1)
         datetime_picker2.pack(side=tk.TOP, pady=10)
 
-        # self.date_entry = ttk.Entry(frame1)
-        # self.date_entry.pack(side=tk.TOP, pady=10)
-
         btn_filter = ttk.Button(frame1, text="Фильтр", command=lambda: self.filter_dates(datetime_picker1.get(),
                                                                                          datetime_picker2.get()))
         btn_filter.pack(side=tk.TOP, pady=10)
@@ -205,6 +203,8 @@ class TrainingLogApp:
         lbl_statistics3 = ttk.Label(frame5, text=sum_weight, font=("Arial", 10), justify=tk.LEFT)
         lbl_statistics3.pack(side=tk.TOP, pady=5)
         self.tree.pack(expand=True, fill=tk.BOTH)
+        btn_grafic = ttk.Button(frame5, text="Показать\nграфик", command=lambda: self.view_grafic())
+        btn_grafic.pack(side=tk.TOP, pady=5)
 
     def date_to_unix(self, date: str)->int:
         d = date[:10]
@@ -308,6 +308,34 @@ class TrainingLogApp:
         save_data(data)
         self.records_window.destroy()
         self.view_records(up=data)
+
+    def view_grafic(self):
+        data1 = []
+        data2 = []
+        selected_item = self.tree.get_children()
+        lab = [l for l in range(1, len(self.tree.get_children()) + 1)]
+        for item in selected_item:
+            item_data = self.tree.item(item)
+            data1.append(float(item_data['values'][2]))
+            data2.append(item_data['values'][3])
+
+        # Создание графика
+        plt.figure(figsize=(10, 5))  # Размер графика
+        plt.plot(lab, data1, '-o', label='Вес')  # ��иния с маркерами для каждого значения)  # Линия с маркерами для каждого значения
+        plt.plot(lab, data2, '-*', label='Количество повторений')  # ��иния с маркерами для каждого значения
+
+
+        # Настройка графика
+        plt.title('График количества повторений и весов')  # Заголовок графика
+        plt.xlabel('Метки')  # Подпись для оси X
+        plt.ylabel('Значения')  # Подпись для оси Y
+        plt.legend(loc='best')  # Подпись меток
+        plt.grid()  # Включение сетки
+
+        # Показать график
+        plt.savefig('plot.png')  # Сохранить график как файл
+        plt.show()  # Отображение графика
+
 
 
 def main():
