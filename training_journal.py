@@ -18,7 +18,7 @@ data_file = 'training_log.json'
 def load_data():
     """Загрузка данных о тренировках из файла."""
     try:
-        with open(data_file, 'r') as file:
+        with open(data_file) as file:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         return []
@@ -29,19 +29,23 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 class DataTimePicker(tk.Frame):
+    """
+    Виджет для выбора даты и времени.
+    """
     def __init__(self, parent, *args, **kwrgs):
         super().__init__(parent, *args, **kwrgs)
 
         self.date_entry = DateEntry(self, width=10, background='darkblue', foreground='white', borderwidth=2,)
         self.date_entry.pack(side=tk.LEFT, padx=(0,5))
 
-        self.hour_spin = ttk.Spinbox(self, from_=0, to=23, width=3, increment=1, format='%02.0f')
+        self.hour_spin = ttk.Spinbox(self, to=23, width=3, format='%02.0f')
         self.hour_spin.pack(side=tk.LEFT)
 
-        self.minute_spin = ttk.Spinbox(self, from_=0, to=59, width=3, format='%02.0f')
+        self.minute_spin = ttk.Spinbox(self, to=59, width=3, format='%02.0f')
         self.minute_spin.pack(side=tk.LEFT)
 
     def get(self):
+        """Получение выбранной даты и времени."""
         date_str = self.date_entry.get()
         time_str = f"{self.hour_spin.get()}:{self.minute_spin.get()}"
         return f"{date_str} {time_str}"
@@ -207,12 +211,14 @@ class TrainingLogApp:
         btn_grafic.pack(side=tk.TOP, pady=5)
 
     def date_to_unix(self, date: str)->int:
+        """Функция преобразования даты в UNIX."""
         d = date[:10]
         date = datetime.datetime.strptime(d, "%d.%m.%Y")
         unix = date.timestamp()
         return unix
 
     def filter_dates(self, date1_filter: str, date2_filter: str)->None:
+        """"Фильтр записей по дате."""
         date1 = self.date_to_unix(date1_filter)
         date2 = self.date_to_unix(date2_filter)
         data = load_data()
@@ -237,6 +243,7 @@ class TrainingLogApp:
         return filtered_data
 
     def total_weight(self, data:list)->float:
+        """Суммарный вес."""
         total = 0
         for entry in data:
             total += float(entry["weight"])
@@ -310,6 +317,7 @@ class TrainingLogApp:
         self.view_records(up=data)
 
     def view_grafic(self):
+        """"Показать график."""
         data1 = []
         data2 = []
         selected_item = self.tree.get_children()
@@ -341,7 +349,7 @@ class TrainingLogApp:
 def main():
     """Главная функция."""
     root = tk.Tk()
-    app = TrainingLogApp(root)
+    TrainingLogApp(root)
     root.mainloop()
 
 if __name__ == "__main__":
